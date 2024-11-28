@@ -336,12 +336,21 @@ class DCMQtreePy(QMainWindow):
 
     def on_file_open(self):
         previous_path = self.previous_path
-        file_name, ok = QFileDialog.getOpenFileName(self, "Open DICOM File", str(previous_path), "DICOM Files (*.dcm)")
-        if file_name:
-            file_list_item = QListWidgetItem(str(file_name))
-            self.ui.listWidget.addItem(file_list_item)
-            self.populate_tree_widget_from_file(file_name)
-            self.current_list_item = file_list_item
+        file_names, ok = QFileDialog.getOpenFileNames(self, "Open DICOM File", str(previous_path), "DICOM Files (*.dcm);;All Files (*)")
+        if ok:
+            for file_name in file_names:
+                file_list_item = QListWidgetItem(str(file_name))
+                duplicated = False
+                # check if duplicated file_name
+                for i in range(self.ui.listWidget.count()):
+                    if self.ui.listWidget.item(i).text() == file_list_item.text():
+                        duplicated = True
+                        logging.warning(f"File {file_name} has been loaded previously")
+                        break
+                if not duplicated:
+                    self.ui.listWidget.addItem(file_list_item)
+                    self.populate_tree_widget_from_file(file_name)
+                    self.current_list_item = file_list_item
 
     def populate_tree_widget_from_file(self, file_name: str | Path):
         if file_name:
